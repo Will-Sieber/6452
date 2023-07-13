@@ -1,0 +1,25 @@
+{
+    "bounding_box": [
+        {
+            "lat": 0,
+            "long": 0
+        },
+        {
+            "lat": 1,
+            "long": 0
+        },
+        {
+            "lat": 1,
+            "long": 1
+        }
+    ]
+}
+
+{
+    "TYPE": "MultiPoint",
+    "coordinates": [
+      [0, 0],
+      [1, 0],
+      [1, 1]
+    ]
+}
