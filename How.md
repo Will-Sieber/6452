@@ -1,3 +1,16 @@
+# The idea
+Each 'block' of land = 1 land token.
+
+The land token will store a bounding box of the land that it represents.
+
+The owner of a token can split it into smaller parts (to a certain limit), or can merge two adjoining blocks of land that they own into a single token.
+
+# Implementation
+- There will be a frontend that the user authorises with their MetaMask wallet.
+- There will be a backend that hosts JSON files.
+    - The backend will also receive requests from the frontend to modify and create new files.
+- The tokens will be an ERC721 smart contract, or NFT.
+
 # The flow:
 ## Creation of a token
 1. User logs onto frontend, submits appropriate documents proving ownership of the land
