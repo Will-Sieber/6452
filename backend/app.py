@@ -85,7 +85,7 @@ def submit():
         return {
             "success": True,
             "token_id": token.id,
-            "url": f"/get?token_id={token.id}"
+            "url": f"{request.host_url}get?token_id={token.id}"
         }
     else:
         return {
@@ -118,6 +118,24 @@ def get_all():
         } for token in tokens]
     }
     
+@app.route("/uri/token-<token_id>.json")
+def get_item(token_id: int):
+    """This route pretends to serve a static JSON file, however it just returns the token data directly.
+
+    Args:
+        token_id (int): The (backend) id of the token to return
+
+    Returns:
+        int: The backend token ID
+        list[{'lat': float, 'lon': float}]: A list of points that when connected as a linear ring, form a boundary for the token.
+    """
+    token = Token.query.filter_by(id=token_id).first()
+    if token is None:
+        return {}, 404
+    return {
+        "token_id": token.id,
+        "points": token.boundary
+    }
     
 # Helper functions
 def do_check(points):
