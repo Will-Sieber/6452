@@ -2,18 +2,19 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] =\
+        'sqlite:///' + os.path.join(basedir, 'database.db')
 db = SQLAlchemy(app)
-
-
 
 ## Models
 
 class Point(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    token_id = db.Column(db.Integer, db.ForeignKey('token.id', lazy=True))
+    token_id = db.Column(db.Integer, db.ForeignKey('token.id'), nullable=False)
     lat = db.Column(db.Float)
     lon = db.Column(db.Float)
     
@@ -110,5 +111,11 @@ def do_check(points):
     return len(conflict_ids) == 0, conflict_ids
 
 
+
+with app.app_context():
+    db.create_all()
+
 if __name__ == "__main__":
-  app.run(debug=True)
+
+    #path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
+    app.run(debug=True)
