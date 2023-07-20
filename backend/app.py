@@ -60,7 +60,7 @@ def check():
     """
     request_data = request.get_json()
     test_shape = LinearRing([(p['lat'], p['lon']) for p in request_data['points']])
-    if not test_shape.intersects(Token.Polygon):
+    if not test_shape.is_valid:
         return {
             "valid": False,
             "message": explain_validity(test_shape)
@@ -106,6 +106,16 @@ def get():
     return {
         "token_id": token.id,
         "points": token.boundary
+    }
+    
+@app.route("/all", methods=['GET'])
+def get_all():
+    tokens = Token.query.all()
+    return {
+        "tokens": [{
+            "token_id": token.id,
+            "points": token.boundary
+        } for token in tokens]
     }
     
     
