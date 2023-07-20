@@ -1,7 +1,8 @@
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
-from shapely.geometry import Point
+from shapely.geometry import Point, LinearRing
 from shapely.geometry.polygon import Polygon
+from shapely.validation import explain_validity
 import os
 
 app = Flask(__name__)
@@ -33,8 +34,12 @@ class Token(db.Model):
         return [{'lat': p.lat, 'lon': p.lon} for p in self.points]
     
     @property
-    def polygon(self):
+    def Polygon(self):
         return Polygon([(p.lat, p.lon) for p in self.points])
+    
+    @property
+    def LinearRing(self):
+        return LinearRing([(p.lat, p.lon) for p in self.points])
 
 
 
@@ -54,11 +59,17 @@ def check():
     }
     """
     request_data = request.get_json()
+    test_shape = LinearRing([(p['lat'], p['lon']) for p in request_data['points']])
+    if not test_shape.intersects(Token.Polygon):
+        return {
+            "valid": False,
+            "message": explain_validity(test_shape)
+        }, 422
     success, conflicts = do_check(request_data['points'])
     return {
         "valid": success,
         "conflicts": conflicts
-    }
+    }, 200 if success else 409
 
 @app.route("/submit", methods=['POST'])
 def submit():
@@ -80,7 +91,7 @@ def submit():
         return {
             "success": False,
             "conflicts": conflicts,
-        }
+        }, 409
 
 @app.route("/change", methods=['POST'])
 def change():
@@ -91,7 +102,7 @@ def get():
     token_id = request.args.get('token_id')
     token = Token.query.filter_by(id=token_id).first()
     if token is None:
-        return {}
+        return {}, 404
     return {
         "token_id": token.id,
         "points": token.boundary
@@ -104,9 +115,9 @@ def do_check(points):
     # Iterate through all tokens, create boundary box of them and see if any of the points are within them
     conflict_ids = []
     for token in tokens:
-        token_polygon = token.polygon
-        other_polygon = Polygon([(p['lat'], p['lon']) for p in points])
-        if token_polygon.intersects(other_polygon):
+        token_ring = token.LinearRing
+        other_ring = LinearRing([(p['lat'], p['lon']) for p in points])
+        if token_ring.intersects(other_ring):
             conflict_ids.append(token.id)
     return len(conflict_ids) == 0, conflict_ids
 
