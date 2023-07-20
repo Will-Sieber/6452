@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Hello, Lorem Ipsum!</h1>
+        </nav>
+    </header>
+    <section class="main">
+        <h1>We currently have {{ tokens }} tokens</h1>
+    </section>
+    <section class="route_container">
+        <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
+        <section class="route">
+            <form>
+                <div class="row">
+                    <div class="col">
+                        <label for="lat1">Latitude 1:</label>
+                        <input type="text" id="lat1" name="lat1">
+                    </div>
+                    <div class="col">
+                        <label for="lng1">Longitude 1:</label>
+                        <input type="text" id="lng1" name="lng1">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label for="lat2">Latitude 2:</label>
+                        <input type="text" id="lat2" name="lat2">
+                    </div>
+                    <div class="col">
+                        <label for="lng2">Longitude 2:</label>
+                        <input type="text" id="lng2" name="lng2">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label for="lat3">Latitude 3:</label>
+                        <input type="text" id="lat3" name="lat3">
+                    </div>
+                    <div class="col">
+                        <label for="lng3">Longitude 3:</label>
+                        <input type="text" id="lng3" name="lng3">
+                    </div>
+                </div>  
+
+                <input type="hidden" id="jsonData" name="jsonData">
+                <input type="submit" value="Submit">
+                <div id="response-message" style="display: none;">
+                    <p>No conflict yayyyyy</p>
+                </div>
+                <div id="error-message" style="display: none;">
+                    <p>Conflict booooooo</p>
+                </div>
+            </form>
+        </section>
+        <section class="route">
+            <a href="#" class="btn">Get Started</a>
+        </section>
+        <section class="route">
+            <a href="#" class="btn">Get Started</a>
+        </section>
+    </section>
+</body>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</html>

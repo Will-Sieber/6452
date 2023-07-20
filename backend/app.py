@@ -1,4 +1,4 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, render_template
 from flask_sqlalchemy import SQLAlchemy
 from shapely.geometry import Point, LinearRing
 from shapely.geometry.polygon import Polygon
@@ -48,7 +48,8 @@ class Token(db.Model):
 
 @app.route("/")
 def hello():
-  return "Hello World!"
+  tokens = len(Token.query.all())
+  return render_template('hello.html', tokens=tokens)
 
 @app.route("/check", methods=['POST'])
 def check():
@@ -59,14 +60,15 @@ def check():
         'points': [{'lat': ___ , 'lon': ___}, ...]
     }
     """
-    request_data = request.get_json()
-    test_shape = LinearRing([(p['lat'], p['lon']) for p in request_data['points']])
+
+    points = [(float(p['lat']), float(p['lon'])) for p in request.json['points']]
+    test_shape = LinearRing(points)
     if not test_shape.is_valid:
         return {
             "valid": False,
             "message": explain_validity(test_shape)
         }, 422
-    success, conflicts = do_check(request_data['points'])
+    success, conflicts = do_check(points)
     return {
         "valid": success,
         "conflicts": conflicts
@@ -149,7 +151,7 @@ def do_check(points):
     conflict_ids = []
     for token in tokens:
         token_ring = token.LinearRing
-        other_ring = LinearRing([(p['lat'], p['lon']) for p in points])
+        other_ring = LinearRing(points)
         if token_ring.intersects(other_ring):
             conflict_ids.append(token.id)
     return len(conflict_ids) == 0, conflict_ids
