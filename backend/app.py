@@ -1,9 +1,10 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_sqlalchemy import SQLAlchemy
 from shapely.geometry import Point, LinearRing
 from shapely.geometry.polygon import Polygon
 from shapely.validation import explain_validity
 import os
+import json
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -85,7 +86,7 @@ def submit():
         return {
             "success": True,
             "token_id": token.id,
-            "url": f"{request.host_url}get?token_id={token.id}"
+            "uri": f"{request.host_url}uri/token-{token.id}.json"
         }
     else:
         return {
@@ -131,11 +132,15 @@ def get_item(token_id: int):
     """
     token = Token.query.filter_by(id=token_id).first()
     if token is None:
-        return {}, 404
-    return {
+        return 404
+    content = {
         "token_id": token.id,
         "points": token.boundary
     }
+    return Response(json.dumps(content),
+                    mimetype='application/json',
+                    headers={'Content-Disposition':f'attachment;filename=token-{token.id}.json'}
+                    )
     
 # Helper functions
 def do_check(points):
