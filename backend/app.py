@@ -77,7 +77,8 @@ def check():
 @app.route("/submit", methods=['POST'])
 def submit():
     request_data = request.get_json()
-    success, conflicts = do_check(request_data['points'])
+    points = [(float(p['lat']), float(p['lon'])) for p in request.json['points']]
+    success, conflicts = do_check(points)
     if success:
         token = Token()
         db.session.add(token)
