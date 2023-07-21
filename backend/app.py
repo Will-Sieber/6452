@@ -155,6 +155,7 @@ def get_token_map(token_id: int):
     center = token.LinearRing.centroid
     center_formatted = [center.x, center.y]
     bounding_box = [[p.lon, p.lat] for p in token.points]
+    bounding_box += bounding_box[0]
     return render_template('token.html', token=token, center=center_formatted, bounding_box=bounding_box)
     
 # Helper functions
