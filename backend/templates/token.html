@@ -15,15 +15,11 @@
         const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [151.210454, -33.867362], 
+        center: {{ center }}, 
         zoom: 9 
         });
     
-        const boundingBoxCoordinates = [
-        [151.289149, -33.916912],
-        [151.142109, -33.904945],
-        [151.212193, -33.817137]
-        ];
+        const boundingBoxCoordinates = {{ bounding_box }}}};
     
         const boundingBoxFeature = {
         type: 'Feature',

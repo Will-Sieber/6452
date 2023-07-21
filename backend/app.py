@@ -145,6 +145,16 @@ def get_item(token_id: int):
                     headers={'Content-Disposition':f'attachment;filename=token-{token.id}.json'}
                     )
     
+@app.route("/uri/token-<token_id>.html")
+def get_token_map(token_id: int):
+    token = Token.query.filter_by(id=token_id).first()
+    if token is None:
+        return 404
+    center = token.LinearRing.centroid
+    center_formatted = [center.x, center.y]
+    bounding_box = [[p.lon, p.lat] for p in token.points]
+    return render_template('token.html', token=token, center=center_formatted, bounding_box=bounding_box)
+    
 # Helper functions
 def do_check(points):
     tokens = Token.query.all()
