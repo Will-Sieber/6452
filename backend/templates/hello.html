@@ -3,6 +3,8 @@
 <head>
     <title>Hello Page</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css" rel="stylesheet" />
 </head>
 <body>
     <header>
@@ -14,7 +16,6 @@
         <h1>We currently have {{ tokens }} tokens</h1>
     </section>
     <section class="route_container">
-        <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
         <section class="route">
             <form>
                 <div class="row">
@@ -59,7 +60,49 @@
             </form>
         </section>
         <section class="route">
-            <a href="#" class="btn">Get Started</a>
+            <div id="map" style="height: 100%; width: 100%;"></div>
+            <script>
+                mapboxgl.accessToken = 'pk.eyJ1IjoicG9pYm9pIiwiYSI6ImNsMTYwaTZuazAxOHMzaXFzdjkzZW4wNm8ifQ.MH9qcxmXZcPGKoMdz_eUvg';
+
+                const map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v11',
+                center: [151.210454, -33.867362], 
+                zoom: 9 
+                });
+
+                const boundingBoxCoordinates = [
+                [151.289149, -33.916912],
+                [151.142109, -33.904945],
+                [151.212193, -33.817137]
+                ];
+
+                const boundingBoxFeature = {
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [boundingBoxCoordinates]
+                }
+                };
+
+                // Add the bounding box as a layer to the map
+                map.on('load', () => {
+                map.addSource('boundingBox', {
+                    type: 'geojson',
+                    data: boundingBoxFeature
+                });
+
+                map.addLayer({
+                    id: 'boundingBoxLayer',
+                    type: 'fill',
+                    source: 'boundingBox',
+                    paint: {
+                    'fill-color': '#FF0000',
+                    'fill-opacity': 0.5
+                    }
+                });
+                });
+            </script>
         </section>
         <section class="route">
             <a href="#" class="btn">Get Started</a>
