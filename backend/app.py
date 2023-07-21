@@ -138,7 +138,9 @@ def get_item(token_id: int):
         return 404
     content = {
         "token_id": token.id,
-        "points": token.boundary
+        "points": token.boundary,
+        "description": "A block of land",
+        "animation_url": request.base_url.split('/uri/')[0] + f"/uri/token-{token_id}.html",
     }
     return Response(json.dumps(content),
                     mimetype='application/json',
