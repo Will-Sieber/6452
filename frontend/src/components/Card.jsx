@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 export default function ActionAreaCard({ animationurl, name, description}) {
 
     return (
-        <Card sx={{ maxWidth: 345 }}>
+        <Card sx={{ maxWidth: 345, margin: 5}}>
             <CardActionArea>
                 <CardMedia
                     component="iframe"
