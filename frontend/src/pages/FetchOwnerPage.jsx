@@ -79,7 +79,7 @@ const FetchOwnerPage = () => {
   }, []);
 
   const cardData = {
-    iframe: jsonData?.animationurl,
+    iframe: URI.replace(/\.[^/.]+$/, ".html"),
     name: jsonData?.name,
     description: jsonData?.description,
   };
@@ -89,7 +89,7 @@ const FetchOwnerPage = () => {
       <h2>Owner Address</h2>
       {ownerAddress && <p>Owner Address: {ownerAddress}</p>}
       {URI && <p>URI: {URI}</p>}
-      {jsonData && <pre>{JSON.stringify(jsonData, null, 2)}</pre>}
+      {jsonData && <p>{jsonData?.animationurl}</p>}
       <ActionAreaCard
         animationurl={cardData.iframe}
         name={cardData.name}

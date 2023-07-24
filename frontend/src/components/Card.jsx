@@ -6,7 +6,6 @@ import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 
 export default function ActionAreaCard({ animationurl, name, description}) {
-    const [iframeURL, setIframeURL] = useState('');
 
     return (
         <Card sx={{ maxWidth: 345 }}>
@@ -17,8 +16,8 @@ export default function ActionAreaCard({ animationurl, name, description}) {
                     width="100%"
                     height="400"
                     title="Embedded Content"
-                    frameBorder="0"
-                    allowFullScreen
+                    allow="FullScreen"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                 />
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
