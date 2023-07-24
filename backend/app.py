@@ -66,8 +66,7 @@ class Token(db.Model):
 
 @app.route("/")
 def hello():
-  tokens = len(Token.query.all())
-  return render_template('hello.html', tokens=tokens)
+  return "Hello :)"
 
 @app.route("/check", methods=['POST'])
 def check():
