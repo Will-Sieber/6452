@@ -1,7 +1,9 @@
 // FetchOwnerPage.js
 import React, { useEffect, useState } from 'react';
 import Web3 from 'web3';
+import ActionAreaCard from '../components/Card';
 import jsondata from "../ABI.json"
+import './FetchOwnerPage.css'; // Import the CSS file
 import {TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS} from '../config'
 const ABI = jsondata;
 //const CONTRACT_ADDRESS = localStorage.getItem("contractAddress")
@@ -77,12 +79,29 @@ const FetchOwnerPage = () => {
     };
   }, []);
 
+  const allJsons = [
+    jsonData,
+    jsonData,
+    jsonData,
+    jsonData,
+    jsonData,
+    jsonData,
+  ]
+
   return (
     <div>
       <h2>Owner Address</h2>
       {ownerAddress && <p>Owner Address: {ownerAddress}</p>}
       {URI && <p>URI: {URI}</p>}
-      {jsonData && <pre>{JSON.stringify(jsonData, null, 2)}</pre>}
+      <div className='cardcontainer'>
+        {allJsons.map((item) => (
+          <ActionAreaCard
+            animationurl = {URI.replace(/\.[^/.]+$/, ".html")}
+            name = {item?.name}
+            description = {item?.description}
+          />
+        ))}
+      </div>
     </div>
   );
 };
