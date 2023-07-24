@@ -1,32 +1,19 @@
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
+import { CardActionArea } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import { CardActionArea } from '@mui/material';
 
-export default function ActionAreaCard() {
+export default function ActionAreaCard({ animationurl, name, description}) {
     const [iframeURL, setIframeURL] = useState('');
 
-    useEffect(() => {
-        fetch({ animationurl })
-        .then((response) => response.json())
-        .then((data) => {
-            const fetchedIframeURL = data.iframe;
-            setIframeURL(fetchedIframeURL); 
-        })
-        .catch((error) => {
-            console.error('Error fetching iframe:', error);
-        });
-    }, []);
-}
-
-export default function ActionAreaCard() {
     return (
         <Card sx={{ maxWidth: 345 }}>
             <CardActionArea>
                 <CardMedia
-                    src={iframeURL}
+                    component="iframe"
+                    src={animationurl}
                     width="100%"
                     height="400"
                     title="Embedded Content"
@@ -35,10 +22,10 @@ export default function ActionAreaCard() {
                 />
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
-                        {{ name }}
+                        {name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        {{ description }}
+                        {description}
                     </Typography>
                 </CardContent>
             </CardActionArea>

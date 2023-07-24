@@ -1,6 +1,7 @@
 // FetchOwnerPage.js
 import React, { useEffect, useState } from 'react';
 import Web3 from 'web3';
+import ActionAreaCard from '../components/Card';
 import jsondata from "../ABI.json"
 import {TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS} from '../config'
 const ABI = jsondata;
@@ -77,12 +78,23 @@ const FetchOwnerPage = () => {
     };
   }, []);
 
+  const cardData = {
+    iframe: jsonData?.animationurl,
+    name: jsonData?.name,
+    description: jsonData?.description,
+  };
+
   return (
     <div>
       <h2>Owner Address</h2>
       {ownerAddress && <p>Owner Address: {ownerAddress}</p>}
       {URI && <p>URI: {URI}</p>}
       {jsonData && <pre>{JSON.stringify(jsonData, null, 2)}</pre>}
+      <ActionAreaCard
+        animationurl={cardData.iframe}
+        name={cardData.name}
+        description={cardData.description}
+      />
     </div>
   );
 };
