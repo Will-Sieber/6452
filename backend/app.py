@@ -8,6 +8,9 @@ from shapely.validation import explain_validity
 import os
 import json
 
+from flask_migrate import Migrate
+
+
 UPLOAD_FOLDER = 'hosted-files/'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg'}
 
@@ -18,6 +21,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] =\
         'sqlite:///' + os.path.join(basedir, 'database.db')
 app.config['UPLOAD_FOLDER'] = os.path.join(basedir, UPLOAD_FOLDER)
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.mkdir(app.config['UPLOAD_FOLDER'])
