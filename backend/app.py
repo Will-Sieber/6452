@@ -28,7 +28,7 @@ class Point(db.Model):
     
 class Area(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    points = db.Relationship('Point', backref='area', lazy=True)
+    points = db.relationship('Point', backref='area', lazy=True)
     boundary_id = db.Column(db.Integer, db.ForeignKey('token.id'), nullable=True)
     hole_id = db.Column(db.Integer, db.ForeignKey('token.id'), nullable=True)
     
@@ -38,8 +38,8 @@ class Area(db.Model):
 class Token(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pending = db.Column(db.Boolean, default=True)
-    boundary = db.Relationship('Area', backref='token_boundary', lazy=True, foreign_keys=[Area.boundary_id], uselist=False)
-    holes = db.Relationship('Area', backref='token_holes', lazy=True, foreign_keys=[Area.hole_id])
+    boundary = db.relationship('Area', backref='token_boundary', lazy=True, foreign_keys=[Area.boundary_id], uselist=False)
+    holes = db.relationship('Area', backref='token_holes', lazy=True, foreign_keys=[Area.hole_id])
     
     def __repr__(self):
         return '<Token %r>' % self.id
@@ -166,12 +166,16 @@ def check_merge():
     token_ids = data['reference_ids']
     tokens = Token.query.filter(Token.id.in_(token_ids)).all()
     # We need to make sure that all tokens are touching each other
-    for token in tokens:
-        pass
-    
+    not_touching = set()
+    for token_outer in tokens:
+        for token_inner in tokens:
+            if token_outer.id == token_inner.id:
+                continue
+            if not token_outer.Polygon.touches(token_inner.Polygon):
+                not_touching.add(token_outer.id)
     return {
-        "valid": None,
-        "not_touching": []
+        "valid": len(not_touching) == 0,
+        "not_touching": list(not_touching)
     }
     
 @app.route("/uri/token-<token_id>.json")

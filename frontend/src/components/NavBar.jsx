@@ -51,8 +51,8 @@ const NavigationBar = () => {
           </button>
         </li>
         <li>
-          <Link to="/owner" className="nav-link"> {/* Add the new link */}
-            Fetch Owner
+          <Link to="/tokens" className="nav-link"> {/* Add the new link */}
+            Fetch Tokens
           </Link>
         </li>
       </ul>
