@@ -224,9 +224,18 @@ def do_check(points, holes):
     for token in tokens:
         token_obj = token.Polygon
         other_obj = Polygon(points, holes=holes)
-        if token_obj.intersects(other_obj):
+        if not check_allowed(token_obj, other_obj):
             conflict_ids.append(token.id)
     return len(conflict_ids) == 0, conflict_ids
+
+# Full credit to https://stackoverflow.com/a/38745732
+def check_allowed(pol1, pol2):
+    allowed = None
+    if ((pol1.intersects(pol2) == False) and (pol1.disjoint(pol2) == True)) or ((pol1.intersects(pol2) == True) and (pol1.touches(pol2) == True)):
+        allowed = True
+    elif (pol1.intersects(pol2) == True) and (pol1.disjoint(pol2) == False) and (pol1.touches(pol2) == False):
+        allowed = False
+    return allowed
 
 
 
