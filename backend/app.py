@@ -16,31 +16,46 @@ db = SQLAlchemy(app)
 
 class Point(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    token_id = db.Column(db.Integer, db.ForeignKey('token.id'), nullable=False)
+    area_id = db.Column(db.Integer, db.ForeignKey('area.id'), nullable=False)
     lat = db.Column(db.Float)
     lon = db.Column(db.Float)
     
     def __repr__(self):
-        return '<Point for %r lat: %r lon: %r>' % self.token, self.lat, self.lon
+        return '<Point for %r lat: %r lon: %r>' % self.area, self.lat, self.lon
+    
+class Area(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    points = db.Relationship('Point', backref='area', lazy=True)
+    boundary_id = db.Column(db.Integer, db.ForeignKey('token.id'), nullable=True)
+    hole_id = db.Column(db.Integer, db.ForeignKey('token.id'), nullable=True)
+    
+    def __repr__(self):
+        return '<Area %r>' % self.id
 
 class Token(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    points = db.Relationship('Point', backref='token', lazy=True)
+    pending = db.Column(db.Boolean, default=True)
+    boundary = db.Relationship('Area', backref='token_boundary', lazy=True, foreign_keys=[Area.boundary_id], uselist=False)
+    holes = db.Relationship('Area', backref='token_holes', lazy=True, foreign_keys=[Area.hole_id])
     
     def __repr__(self):
         return '<Token %r>' % self.id
     
     @property
-    def boundary(self):
-        return [{'lat': p.lat, 'lon': p.lon} for p in self.points]
+    def Boundary(self):
+        return [{'lat': p.lat, 'lon': p.lon} for p in self.boundary.points]
+    
+    @property
+    def Holes(self):
+        return [[{'lat': p.lat, 'lon': p.lon} for p in hole.points] for hole in self.holes]
     
     @property
     def Polygon(self):
-        return Polygon([(p.lat, p.lon) for p in self.points])
+        return Polygon([(p.lat, p.lon) for p in self.boundary.points], holes=[[(p.lat, p.lon) for p in hole.points] for hole in self.holes])
     
     @property
     def LinearRing(self):
-        return LinearRing([(p.lat, p.lon) for p in self.points])
+        return LinearRing([(p.lat, p.lon) for p in self.boundary.points])
 
 
 
@@ -62,13 +77,14 @@ def check():
     """
 
     points = [(float(p['lat']), float(p['lon'])) for p in request.json['points']]
-    test_shape = LinearRing(points)
+    holes = [[(float(p['lat']), float(p['lon'])) for p in hole['points']] for hole in request.json['holes']]
+    test_shape = Polygon(points, holes=holes)
     if not test_shape.is_valid:
         return {
             "valid": False,
             "message": explain_validity(test_shape)
         }, 422
-    success, conflicts = do_check(points)
+    success, conflicts = do_check(points, holes)
     return {
         "valid": success,
         "conflicts": conflicts
@@ -78,17 +94,28 @@ def check():
 def submit():
     request_data = request.get_json()
     points = [(float(p['lat']), float(p['lon'])) for p in request.json['points']]
-    success, conflicts = do_check(points)
+    holes = [[(float(p['lat']), float(p['lon'])) for p in hole['points']] for hole in request.json['holes']]
+    success, conflicts = do_check(points, holes)
     if success:
         token = Token()
         db.session.add(token)
-        for point in request_data['points']:
-            new_point = Point(token=token, lat=point['lat'], lon=point['lon'])
-            db.session.add(new_point)
+        if len(points) > 0:
+            boundary = Area()
+            for point in request_data['points']:
+                new_point = Point(area=boundary, lat=point['lat'], lon=point['lon'])
+                db.session.add(new_point)
+            token.boundary = boundary
+        if len(request_data['holes']) > 0:
+            for hole in request_data['holes']:
+                new_hole = Area()
+                for point in hole['points']:
+                    new_point = Point(area=new_hole, lat=point['lat'], lon=point['lon'])
+                    db.session.add(new_point)
+                token.holes.append(new_hole)
         db.session.commit()
         return {
             "success": True,
-            "token_id": token.id,
+            "reference_id": token.id,
             "uri": f"{request.host_url}uri/token-{token.id}.json"
         }
     else:
@@ -108,8 +135,9 @@ def get():
     if token is None:
         return {}, 404
     return {
-        "token_id": token.id,
-        "points": token.boundary
+        "reference_id": token.id,
+        "boundary": token.Boundary,
+        "holes": token.Holes
     }
     
 @app.route("/all", methods=['GET'])
@@ -117,8 +145,9 @@ def get_all():
     tokens = Token.query.all()
     return {
         "tokens": [{
-            "token_id": token.id,
-            "points": token.boundary
+            "reference_id": token.id,
+            "boundary": token.Boundary,
+            "holes": token.Holes
         } for token in tokens]
     }
     
@@ -137,8 +166,10 @@ def get_item(token_id: int):
     if token is None:
         return 404
     content = {
-        "token_id": token.id,
-        "points": token.boundary,
+        "reference_id": token.id,
+        "boundary": token.Boundary,
+        "holes": token.Holes,
+        "name": f"LandToken %{token.id}",
         "description": "A block of land",
         "animation_url": request.base_url.split('/uri/')[0] + f"/uri/token-{token_id}.html",
     }
@@ -152,21 +183,24 @@ def get_token_map(token_id: int):
     token = Token.query.filter_by(id=token_id).first()
     if token is None:
         return 404
-    center = token.LinearRing.centroid
+    center = token.Polygon.centroid
     center_formatted = [center.x, center.y]
-    bounding_box = [[p.lon, p.lat] for p in token.points]
+    bounding_box = [[p.lon, p.lat] for p in token.boundary.points]
     bounding_box += [bounding_box[0]]
-    return render_template('token.html', token=token, center=center_formatted, bounding_box=bounding_box)
+    holes_bbox = [[[p.lon, p.lat] for p in hole.points] for hole in token.holes]
+    for hole in holes_bbox:
+        hole.append(hole[0])
+    return render_template('token.html', token=token, center=center_formatted, bounding_box=bounding_box, holes=holes_bbox)
     
 # Helper functions
-def do_check(points):
+def do_check(points, holes):
     tokens = Token.query.all()
     # Iterate through all tokens, create boundary box of them and see if any of the points are within them
     conflict_ids = []
     for token in tokens:
-        token_ring = token.LinearRing
-        other_ring = LinearRing(points)
-        if token_ring.intersects(other_ring):
+        token_obj = token.Polygon
+        other_obj = Polygon(points, holes=holes)
+        if token_obj.intersects(other_obj):
             conflict_ids.append(token.id)
     return len(conflict_ids) == 0, conflict_ids
 

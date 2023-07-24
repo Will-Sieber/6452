@@ -1,3 +1,7 @@
 {
-    "solidity.compileUsingRemoteVersion": "latest"
+    "solidity.compileUsingRemoteVersion": "latest",
+    "cSpell.words": [
+        "backref",
+        "uselist"
+    ]
 }

@@ -19,14 +19,18 @@
         });
     
         const boundingBoxCoordinates = {{ bounding_box }};
+
+        const holeCoordinates = {{holes}};
     
         const boundingBoxFeature = {
         type: 'Feature',
         geometry: {
             type: 'Polygon',
-            coordinates: [boundingBoxCoordinates]
+            coordinates: [boundingBoxCoordinates, ...holeCoordinates]
         }
         };
+
+        console.log(...holeCoordinates)
     
         // Add the bounding box as a layer to the map
         map.on('load', () => {
