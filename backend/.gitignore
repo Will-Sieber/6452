@@ -161,3 +161,6 @@ cython_debug/
 
 # Pyenv local virtual environments
 .python-version
+
+# Anything hosted
+hosted-files/*
