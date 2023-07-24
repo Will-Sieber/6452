@@ -9,6 +9,8 @@ const ABI = jsondata;
 const FetchOwnerPage = () => {
   const [contract, setContract] = useState(null);
   const [ownerAddress, setOwnerAddress] = useState('');
+  const [URI, setURI] = useState('')
+  const [jsonData, setJsonData] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -19,7 +21,7 @@ const FetchOwnerPage = () => {
         web3 = new Web3(window.ethereum);
         try {
           await window.ethereum.enable();
-          const contractInstance = new web3.eth.Contract(ABI, CONTRACT_ADDRESS); // Replace 'ABI' and 'CONTRACT_ADDRESS' with your contract's ABI and address
+          const contractInstance = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
           setContract(contractInstance);
 
           // Fetch the owner address
@@ -34,6 +36,31 @@ const FetchOwnerPage = () => {
             .catch((error) => {
               console.error('Error getting owner address:', error);
             });
+
+            // Fetch the token URI
+            contractInstance.methods
+            .tokenURI(1)
+            .call()
+            .then((URI) => {
+                if (isMounted) {
+                setURI(URI);
+
+                // Fetch the JSON data from the URI
+                fetch(URI)
+                    .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                    })
+                    .then(data => setJsonData(data))
+                    .catch(error => console.error('Error fetching JSON data:', error));
+                }
+            })
+            .catch((error) => {
+                console.error('Error getting token URI:', error);
+            });
+
         } catch (error) {
           console.error('Error initializing web3:', error);
         }
@@ -43,8 +70,6 @@ const FetchOwnerPage = () => {
     };
 
     initializeWeb3();
-
-    console.log(ABI)
 
     return () => {
       isMounted = false;
@@ -56,6 +81,8 @@ const FetchOwnerPage = () => {
     <div>
       <h2>Owner Address</h2>
       {ownerAddress && <p>Owner Address: {ownerAddress}</p>}
+      {URI && <p>URI: {URI}</p>}
+      {jsonData && <pre>{JSON.stringify(jsonData, null, 2)}</pre>}
     </div>
   );
 };
