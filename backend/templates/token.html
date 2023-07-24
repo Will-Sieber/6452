@@ -11,30 +11,70 @@
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoicG9pYm9pIiwiYSI6ImNsMTYwaTZuazAxOHMzaXFzdjkzZW4wNm8ifQ.MH9qcxmXZcPGKoMdz_eUvg';
     
+        
+        const boundingBoxCoordinates = {{ bounding_box }};
+        
+        const holeCoordinates = {{holes}};
+        
+        const boundingBoxFeature = {
+            type: 'Feature',
+            geometry: {
+                type: 'Polygon',
+                coordinates: [boundingBoxCoordinates, ...holeCoordinates]
+            }
+        };
+
+        let lat_min, lat_max, lng_min, lng_max;
+        boundingBoxCoordinates.map((element) => {
+            lat_min = lat_min < element[0] ? lat_min : element[0];
+            lat_max = lat_max > element[0] ? lat_max : element[0];
+            lng_min = lng_min < element[1] ? lng_min : element[1];
+            lng_max = lng_max > element[1] ? lng_max : element[1];
+        });
+        const defaultZoom = 9;
+        function getZoomLevelForGeojsonArea(lat_min, lat_max, lng_min, lng_max) {
+            let dx = Math.abs(lat_max-lat_min);
+            let dy = Math.abs(lng_max-lng_min);
+            let d = dy > dx ? dy : dx;
+            //return zoomlevel
+            switch(true) {
+                case d>100 : return defaultZoom ?? 0;
+                case (d>75 && d<=100) : return 0.2;
+                case (d>50 && d<=75) : return 0.4;
+                case (d>40 && d<=50) : return 1.2;
+                case (d>30 && d<=40) : return 1.4;
+                case (d>20 && d<=30) : return 1.6;
+                case (d>15 && d<=20) : return 1.7;
+                case (d>10 && d<=15) : return 2.1;
+                case (d>5 && d<=10) : return 2.7;
+                case (d>2.5 && d<=5) : return 3.2;
+                case (d>1 && d<=2.5) : return 3.8;
+                case (d>0.5 && d<=1) : return 6;
+                case (d>0.25 && d<=0.5) : return 7.2;
+                case (d>0.125 && d<=0.25) : return 7.6;
+                case (d>0.10 && d<=0.125) : return 8.2;
+                case (d>0.01 && d<=0.10) : return 8.8;
+                case (d>0.001 && d<=0.01) : return 9;
+                default: return 9.6
+            }
+        }
+        console.log({lat_min, lat_max, lng_min, lng_max})
+        
+        console.log(...holeCoordinates)
+
+        const zoomLevel = getZoomLevelForGeojsonArea(lat_min, lat_max, lng_min, lng_max);
+        console.log(zoomLevel);
+    
         const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
         center: {{ center }}, 
-        zoom: 9 
+        zoom: zoomLevel,
         });
-    
-        const boundingBoxCoordinates = {{ bounding_box }};
-
-        const holeCoordinates = {{holes}};
-    
-        const boundingBoxFeature = {
-        type: 'Feature',
-        geometry: {
-            type: 'Polygon',
-            coordinates: [boundingBoxCoordinates, ...holeCoordinates]
-        }
-        };
-
-        console.log(...holeCoordinates)
-    
+        
         // Add the bounding box as a layer to the map
         map.on('load', () => {
-        map.addSource('boundingBox', {
+            map.addSource('boundingBox', {
             type: 'geojson',
             data: boundingBoxFeature
         });
