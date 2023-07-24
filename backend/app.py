@@ -228,7 +228,7 @@ def upload_file():
                     "Success": False,
                     "message": "No submitter_address provided. Please provide the address for the new token to be minted to once it has been approved."
                 }, 400
-            token = Token(pending=True)
+            token = Token(pending=True, initial_owner=data['submitter_address'])
             db.session.add(token)
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
