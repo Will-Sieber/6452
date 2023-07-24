@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import Web3 from 'web3';
 import jsondata from "../ABI.json"
+import {TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS} from '../config'
 const ABI = jsondata;
-const CONTRACT_ADDRESS = localStorage.getItem("contractAddress")
+//const CONTRACT_ADDRESS = localStorage.getItem("contractAddress")
 
 const FetchOwnerPage = () => {
   const [contract, setContract] = useState(null);
