@@ -75,9 +75,12 @@ def check():
         'points': [{'lat': ___ , 'lon': ___}, ...]
     }
     """
+    data = request.get_json()
+    if 'holes' not in data:
+        data['holes'] = []
 
-    points = [(float(p['lat']), float(p['lon'])) for p in request.json['points']]
-    holes = [[(float(p['lat']), float(p['lon'])) for p in hole['points']] for hole in request.json['holes']]
+    points = [(float(p['lat']), float(p['lon'])) for p in data['points']]
+    holes = [[(float(p['lat']), float(p['lon'])) for p in hole['points']] for hole in data['holes']]
     test_shape = Polygon(points, holes=holes)
     if not test_shape.is_valid:
         return {
@@ -92,21 +95,23 @@ def check():
 
 @app.route("/submit", methods=['POST'])
 def submit():
-    request_data = request.get_json()
-    points = [(float(p['lat']), float(p['lon'])) for p in request.json['points']]
-    holes = [[(float(p['lat']), float(p['lon'])) for p in hole['points']] for hole in request.json['holes']]
+    data = request.get_json()
+    if 'holes' not in data:
+        data['holes'] = []
+    points = [(float(p['lat']), float(p['lon'])) for p in data['points']]
+    holes = [[(float(p['lat']), float(p['lon'])) for p in hole['points']] for hole in data['holes']]
     success, conflicts = do_check(points, holes)
     if success:
         token = Token()
         db.session.add(token)
         if len(points) > 0:
             boundary = Area()
-            for point in request_data['points']:
+            for point in data['points']:
                 new_point = Point(area=boundary, lat=point['lat'], lon=point['lon'])
                 db.session.add(new_point)
             token.boundary = boundary
-        if len(request_data['holes']) > 0:
-            for hole in request_data['holes']:
+        if len(data['holes']) > 0:
+            for hole in data['holes']:
                 new_hole = Area()
                 for point in hole['points']:
                     new_point = Point(area=new_hole, lat=point['lat'], lon=point['lon'])
