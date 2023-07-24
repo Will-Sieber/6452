@@ -113,7 +113,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NavigationBar from './components/NavBar';
-import FetchOwnerPage from './pages/FetchOwnerPage';
+import FetchTokensPage from './pages/FetchTokensPage';
 
 const App = () => {
   return (
@@ -122,7 +122,7 @@ const App = () => {
       <Routes>
         <Route exact path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/owner" element={<FetchOwnerPage />} />
+        <Route path="/tokens" element={<FetchTokensPage />} />
       </Routes>
     </Router>
   );
