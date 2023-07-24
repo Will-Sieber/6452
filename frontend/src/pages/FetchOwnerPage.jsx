@@ -78,23 +78,23 @@ const FetchOwnerPage = () => {
     };
   }, []);
 
-  const cardData = {
-    iframe: URI.replace(/\.[^/.]+$/, ".html"),
-    name: jsonData?.name,
-    description: jsonData?.description,
-  };
+  const allJsons = [
+    jsonData,
+  ]
 
   return (
     <div>
       <h2>Owner Address</h2>
       {ownerAddress && <p>Owner Address: {ownerAddress}</p>}
       {URI && <p>URI: {URI}</p>}
-      {jsonData && <p>{jsonData?.animationurl}</p>}
-      <ActionAreaCard
-        animationurl={cardData.iframe}
-        name={cardData.name}
-        description={cardData.description}
-      />
+      
+      {allJsons.map((item) => (
+        <ActionAreaCard
+          animationurl = {URI.replace(/\.[^/.]+$/, ".html")}
+          name = {item?.name}
+          description = {item?.description}
+        />
+      ))}
     </div>
   );
 };
