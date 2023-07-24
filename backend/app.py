@@ -1,5 +1,7 @@
 from flask import Flask, request, Response, render_template
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+
 from shapely.geometry import Point, LinearRing
 from shapely.geometry.polygon import Polygon
 from shapely.validation import explain_validity
@@ -7,6 +9,7 @@ import os
 import json
 
 app = Flask(__name__)
+CORS(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] =\
         'sqlite:///' + os.path.join(basedir, 'database.db')
@@ -156,6 +159,22 @@ def get_all():
         } for token in tokens]
     }
     
+    
+@app.route('/check/merge', methods=['POST'])
+def check_merge():
+    data = request.get_json()
+    # NOTE: These need to be backend 'reference ids', not the actual token ids
+    token_ids = data['reference_ids']
+    tokens = Token.query.filter(Token.id.in_(token_ids)).all()
+    # We need to make sure that all tokens are touching each other
+    for token in tokens:
+        pass
+    
+    return {
+        "valid": None,
+        "not_touching": []
+    }
+    
 @app.route("/uri/token-<token_id>.json")
 def get_item(token_id: int):
     """This route pretends to serve a static JSON file, however it just returns the token data directly.
@@ -205,9 +224,18 @@ def do_check(points, holes):
     for token in tokens:
         token_obj = token.Polygon
         other_obj = Polygon(points, holes=holes)
-        if token_obj.intersects(other_obj):
+        if not check_allowed(token_obj, other_obj):
             conflict_ids.append(token.id)
     return len(conflict_ids) == 0, conflict_ids
+
+# Full credit to https://stackoverflow.com/a/38745732
+def check_allowed(pol1, pol2):
+    allowed = None
+    if ((pol1.intersects(pol2) == False) and (pol1.disjoint(pol2) == True)) or ((pol1.intersects(pol2) == True) and (pol1.touches(pol2) == True)):
+        allowed = True
+    elif (pol1.intersects(pol2) == True) and (pol1.disjoint(pol2) == False) and (pol1.touches(pol2) == False):
+        allowed = False
+    return allowed
 
 
 
