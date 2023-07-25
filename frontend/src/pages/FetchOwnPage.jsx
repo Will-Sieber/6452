@@ -38,7 +38,7 @@ const FetchOwnPage = () => {
         setAddress(account)
         const tokenData = [];
         try {
-          //await window.ethereum.enable();
+          await window.ethereum.enable();
           const contractInstance = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
           setContract(contractInstance);
           
@@ -76,7 +76,7 @@ const FetchOwnPage = () => {
       console.error("No valid contract")
       return [];
     }
-    const thing = await contract.methods.tokenOfOwnerByIndex(account, index).call().then(async (result, error) => {
+    const thing = await contract.methods.tokenOfOwnerByIndex(address, index).call().then(async (result, error) => {
       if (!error) {
         index++;
         const next_result = await findTokenRecursive(contract);
