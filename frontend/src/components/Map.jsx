@@ -40,27 +40,28 @@ export default function Map(props) {
         map.current.on('load', () => {setMapLoaded(true);});
         if (!mapLoaded) return;
         props.geometries.forEach((geometry, index) => {
-            console.log(`Adding polygon ${index}:`)
-            console.log(geometry);
-            map.current.addSource(`Polygon-${index}`, {
-                type: 'geojson',
-                data: {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Polygon',
-                        coordinates: [formatCoords(geometry.boundary), formatCoords(...geometry.holes)]
+            const sources = map.current.getStyle().sources;
+            if (!sources.hasOwnProperty(`Polygon-${index}`))  {
+                map.current.addSource(`Polygon-${index}`, {
+                    type: 'geojson',
+                    data: {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Polygon',
+                            coordinates: [formatCoords(geometry.boundary), formatCoords(...geometry.holes)]
+                        }
                     }
-                }
-            });
-            map.current.addLayer({
-                id: `Polygon-${index}-Layer`,
-                type: 'fill',
-                source: `Polygon-${index}`,
-                paint: {
-                    'fill-color': '#FF0000',
-                    'fill-opacity': 0.5
-                    }
-            })
+                });
+                map.current.addLayer({
+                    id: `Polygon-${index}-Layer`,
+                    type: 'fill',
+                    source: `Polygon-${index}`,
+                    paint: {
+                        'fill-color': '#FF0000',
+                        'fill-opacity': 0.5
+                        }
+                })
+            }
         })
     }, [props.geometries, map, mapLoaded])
 
