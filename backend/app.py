@@ -67,11 +67,11 @@ class Token(db.Model):
     
     @property
     def Polygon(self):
-        return Polygon([(p.lat, p.lon) for p in self.boundary.points], holes=[[(p.lat, p.lon) for p in hole.points] for hole in self.holes])
+        return Polygon([(p.lat, p.lon) for p in self.boundary.points], holes=[[(p.lon, p.lat) for p in hole.points] for hole in self.holes])
     
     @property
     def LinearRing(self):
-        return LinearRing([(p.lat, p.lon) for p in self.boundary.points])
+        return LinearRing([(p.lon, p.lat) for p in self.boundary.points])
     
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -201,6 +201,44 @@ def check_merge():
     return {
         "valid": len(not_touching) == 0,
         "not_touching": list(not_touching)
+    }
+
+@app.route('/merge', methods=['POST'])
+def merge():
+    data = request.get_json()
+    # NOTE: These need to be backend 'reference ids', not the actual token ids
+    token_ids = data['reference_ids']
+    keep_token_ref_id = min(token_ids)
+    other_ids = [id for id in token_ids if id != keep_token_ref_id]
+    keep_token = Token.query.filter_by(id=keep_token_ref_id).first()
+    other_tokens = Token.query.filter(Token.id.in_(other_ids)).all()
+    resultant_polygon = keep_token.Polygon
+    for token in other_tokens:
+        resultant_polygon = resultant_polygon.union(token.Polygon)
+    if not resultant_polygon.is_valid:
+        return {
+            "success": False,
+            "valid": False,
+            "message": explain_validity(resultant_polygon)
+        }, 422
+    keep_token.holes = []
+    new_boundary = Area()
+    for point in resultant_polygon.exterior.coords:
+        new_point = Point(area=new_boundary, lat=point[1], lon=point[0])
+        db.session.add(new_point)
+    keep_token.boundary = new_boundary
+    for hole in resultant_polygon.interiors:
+        new_hole = Area()
+        for point in hole.coords:
+            new_point = Point(area=new_hole, lat=point[1], lon=point[0])
+            db.session.add(new_point)
+        keep_token.holes.append(new_hole)
+    for token in other_tokens:
+        db.session.delete(token)
+    db.session.commit()
+    return {
+        "success": True,
+        "reference_id": keep_token.id,
     }
 
 # File upload/download
@@ -368,7 +406,7 @@ def get_item(token_id: int):
     return Response(json.dumps(content),
                     mimetype='application/json',
                     headers={'Content-Disposition':f'attachment;filename=token-{token.id}.json'}
-                    )
+                )
     
 @app.route("/uri/token-<token_id>.html")
 def get_token_map(token_id: int):
