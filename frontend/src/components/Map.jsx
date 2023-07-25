@@ -30,6 +30,7 @@ export default function Map(props) {
             result.push([point.lon, point.lat]);
         });
         console.log(result);
+        result.push(result[0]); // Should be a complete loop to properly render the polygon
         return result;
     }
 
