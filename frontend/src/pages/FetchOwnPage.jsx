@@ -35,6 +35,7 @@ const FetchOwnPage = () => {
         //})
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         const account = accounts[0];
+        console.log(account);
         setAddress(account)
         const tokenData = [];
         try {
@@ -76,6 +77,7 @@ const FetchOwnPage = () => {
       console.error("No valid contract")
       return [];
     }
+    const useThisAddress =  address !== null ? address : localStorage.getItem("AccountAddress");
     const thing = await contract.methods.tokenOfOwnerByIndex(address, index).call().then(async (result, error) => {
       if (!error) {
         index++;
