@@ -56,7 +56,6 @@ const FileCollectorPage = () => {
   return (
     <div>
       <h1>File Collector</h1>
-      {referenceId}
       <div>
         <label for="existing-reference">Do you have an existing reference number?</label>
         <input type="checkbox" id="existing-reference" onChange={(e) => {setExistingReference(e.target.checked)}}/>
