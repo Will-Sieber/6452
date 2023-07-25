@@ -7,8 +7,9 @@ from shapely.geometry.polygon import Polygon
 from shapely.validation import explain_validity
 import os
 import json
-
+from dotenv import load_dotenv
 from flask_migrate import Migrate
+from web3 import Web3
 
 
 UPLOAD_FOLDER = 'hosted-files/'
@@ -22,6 +23,39 @@ app.config['SQLALCHEMY_DATABASE_URI'] =\
 app.config['UPLOAD_FOLDER'] = os.path.join(basedir, UPLOAD_FOLDER)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+load_dotenv()
+
+web3 = Web3(Web3.HTTPProvider(os.getenv('WEB3_PROVIDER_URI')))
+# Verify if the connection is successful
+if web3.is_connected():
+    print("-" * 50)
+    print("Connection Successful")
+    print("-" * 50)
+else:
+    print("Connection Failed")
+
+caller = os.getenv('WALLET_ADDRESS')
+private_key = os.getenv('WALLET_PRIVATE_KEY')
+
+with open('../frontend/src/ABI.json') as f:
+    abi = json.load(f)
+
+contract_address = os.getenv('CONTRACT_ADDRESS')
+
+nonce = web3.eth.get_transaction_count(caller)
+
+contract = web3.eth.contract(address=contract_address, abi=abi)
+
+def mintToken(address, URI):
+    Chain_id = web3.eth.chain_id
+    call_function = contract.functions.mintLandToken(Web3.to_checksum_address(address.strip('\"')), URI).build_transaction({"chainId": Chain_id, "from": caller, "nonce": nonce})
+    signed_tx = web3.eth.account.sign_transaction(call_function, private_key=private_key)
+    send_tx = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    tx_receipt = web3.eth.wait_for_transaction_receipt(send_tx)
+    print(tx_receipt)
+    return tx_receipt
+
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.mkdir(app.config['UPLOAD_FOLDER'])
@@ -317,9 +351,12 @@ def approve():
         return "Token not found", 404
     if token.boundary is None:
         return "Token has no boundary", 422
+    if not token.pending:
+        return "Token is not pending", 400
     token.pending = False
     db.session.commit()
     # TODO: NOW, GO MINT THE TOKEN
+    mintToken(token.initial_owner, f"{request.host_url}uri/token-{token.id}.json")
     return {
         "success": True
     }
