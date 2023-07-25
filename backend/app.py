@@ -358,7 +358,7 @@ def approve():
     # TODO: NOW, GO MINT THE TOKEN
     mintToken(token.initial_owner, f"{request.host_url}uri/token-{token.id}.json")
     return {
-        "success": True
+        "success": True,
     }
 
 @app.route('/set', methods=['PATCH'])
@@ -373,9 +373,8 @@ def set_token():
     success, conflicts = do_check(points, holes)
     if not success:
         return {"success": False, "conflicts": conflicts}, 409
-    token.boundary.delete()
-    for hole in token.holes:
-        hole.delete()
+    token.boundary = None
+    token.holes = []
     db.session.commit()
     if len(points) > 0:
         boundary = Area()
@@ -461,7 +460,7 @@ def get_token_map(token_id: int):
     
 # Helper functions
 def do_check(points, holes):
-    tokens = Token.query.all()
+    tokens = Token.query.filter_by(pending=False).all()
     # Iterate through all tokens, create boundary box of them and see if any of the points are within them
     conflict_ids = []
     for token in tokens:
