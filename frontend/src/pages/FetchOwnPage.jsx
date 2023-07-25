@@ -24,18 +24,21 @@ const FetchOwnPage = () => {
 
   useEffect(() => {
     let isMounted = true;
-    let web3;
+    //let web3;
 
     const initializeWeb3 = async () => {
       if (typeof window.ethereum !== 'undefined') {
-        web3 = new Web3(window.ethereum);
-        fetchAccount(web3).then((address) => {
-          account = address;
-          setAddress(address);
-        })
+        const web3 = new Web3(window.ethereum);
+        //fetchAccount(web3).then((address) => {
+        //  account = address;
+        //  setAddress(address);
+        //})
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const account = accounts[0];
+        setAddress(account)
         const tokenData = [];
         try {
-          await window.ethereum.enable();
+          //await window.ethereum.enable();
           const contractInstance = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
           setContract(contractInstance);
           
