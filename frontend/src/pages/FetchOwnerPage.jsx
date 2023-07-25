@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Web3, { errors } from 'web3';
 import ActionAreaCard from '../components/Card';
 import jsondata from "../ABI.json"
-import './FetchOwnerPage.css'; // Import the CSS file
+import './FetchTokensPage.css'; // Import the CSS file
 import {TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS} from '../config';
 const ABI = jsondata;
 //const CONTRACT_ADDRESS = localStorage.getItem("contractAddress")

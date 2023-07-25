@@ -114,6 +114,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NavigationBar from './components/NavBar';
 import FetchTokensPage from './pages/FetchTokensPage';
+import FetchOwnerPage from './pages/FetchOwnerPage';
 
 const App = () => {
   return (
@@ -123,6 +124,7 @@ const App = () => {
         <Route exact path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/tokens" element={<FetchTokensPage />} />
+        <Route path="/test" element={<FetchOwnerPage />} />
       </Routes>
     </Router>
   );

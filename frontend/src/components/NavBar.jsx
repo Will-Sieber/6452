@@ -55,6 +55,11 @@ const NavigationBar = () => {
             Fetch Tokens
           </Link>
         </li>
+        <li>
+          <Link to="/test" className="nav-link">
+            Will test page
+          </Link>
+        </li>
       </ul>
     </nav>
   );

@@ -8,7 +8,6 @@ import {TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS, BACKEND_URL} from '../config
 const ABI = jsondata;
 
 const FetchTokensPage = () => {
-  const [contract, setContract] = useState(null);
   const [allJsons, setAllJsons] = useState([]);
   const [allTokens, setAllTokens] = useState([]);
 
@@ -32,7 +31,6 @@ const FetchTokensPage = () => {
         try {
           await window.ethereum.enable();
           const contractInstance = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-          setContract(contractInstance);
           // Initialize an empty array to hold JSON data
           const tokenData = [];
           // Loop over a range of token IDs
