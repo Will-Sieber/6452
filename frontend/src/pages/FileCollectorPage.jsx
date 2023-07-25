@@ -43,6 +43,9 @@ const FileCollectorPage = () => {
         } else {
           alert('File uploaded successfully!'); // Fallback message if "message" field not found
         }
+        if (!existingReference) {
+          alert(`Your reference number is ${data.reference_id}. Please keep note of this number to provide additional documents.`)
+        }
       })
       .catch((error) => {
         // Handle errors
