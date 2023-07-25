@@ -1,10 +1,11 @@
 // FetchOwnerPage.js
 import React, { useEffect, useState } from 'react';
 import Web3, { errors } from 'web3';
-import ActionAreaCard from '../components/Card';
+import MyCard from '../components/My_card';
 import jsondata from "../ABI.json"
 import './FetchTokensPage.css'; // Import the CSS file
 import {TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS} from '../config';
+import Button from '@mui/material/Button';
 const ABI = jsondata;
 //const CONTRACT_ADDRESS = localStorage.getItem("contractAddress")
 
@@ -93,13 +94,18 @@ const FetchOwnPage = () => {
     <div>
       <div className='cardcontainer'>
         {allJsons.map((item, index) => (
-          <ActionAreaCard
+          <MyCard
           key={item.data?.name}
           animationurl = {URI.replace(/\.[^/.]+$/, ".html")}
           name = {item.data?.name}
           description = {item.data?.description}
         />
         ))}
+      </div>
+      <div style={{margin: "20px"}}>
+        <Button variant="contained" color="primary" onClick={console.log("button")}>
+          Merge
+        </Button>
       </div>
     </div>
   );
