@@ -25,6 +25,7 @@ export default function Map(props) {
     });
 
     function formatCoords(coords_dict) {
+        if (coords_dict === undefined) return [];
         const result = [];
         coords_dict.forEach((point) => {
             result.push([point.lon, point.lat]);
@@ -39,7 +40,9 @@ export default function Map(props) {
         map.current.on('load', () => {setMapLoaded(true);});
         if (!mapLoaded) return;
         props.geometries.forEach((geometry, index) => {
-            map.current.addSource(`Polygon-${geometry.index}`, {
+            console.log(`Adding polygon ${index}:`)
+            console.log(geometry);
+            map.current.addSource(`Polygon-${index}`, {
                 type: 'geojson',
                 data: {
                     type: 'Feature',
@@ -48,6 +51,15 @@ export default function Map(props) {
                         coordinates: [formatCoords(geometry.boundary), formatCoords(...geometry.holes)]
                     }
                 }
+            });
+            map.current.addLayer({
+                id: `Polygon-${index}-Layer`,
+                type: 'fill',
+                source: `Polygon-${index}`,
+                paint: {
+                    'fill-color': '#FF0000',
+                    'fill-opacity': 0.5
+                    }
             })
         })
     }, [props.geometries, map, mapLoaded])
