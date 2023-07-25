@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
- 
-mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+import { MAPBOX_KEY } from '../config'; 
+
+mapboxgl.accessToken = MAPBOX_KEY;
 
 
 
@@ -24,11 +25,13 @@ export default function Map(props) {
     });
 
     function formatCoords(coords_dict) {
+        if (coords_dict === undefined) return [];
         const result = [];
         coords_dict.forEach((point) => {
             result.push([point.lon, point.lat]);
         });
         console.log(result);
+        result.push(result[0]); // Should be a complete loop to properly render the polygon
         return result;
     }
 
@@ -36,8 +39,10 @@ export default function Map(props) {
         if (!map.current) return;
         map.current.on('load', () => {setMapLoaded(true);});
         if (!mapLoaded) return;
-        props.geometries.forEach((geometry) => {
-            map.current.addSource(`${geometry.id}`, {
+        props.geometries.forEach((geometry, index) => {
+            console.log(`Adding polygon ${index}:`)
+            console.log(geometry);
+            map.current.addSource(`Polygon-${index}`, {
                 type: 'geojson',
                 data: {
                     type: 'Feature',
@@ -46,9 +51,18 @@ export default function Map(props) {
                         coordinates: [formatCoords(geometry.boundary), formatCoords(...geometry.holes)]
                     }
                 }
+            });
+            map.current.addLayer({
+                id: `Polygon-${index}-Layer`,
+                type: 'fill',
+                source: `Polygon-${index}`,
+                paint: {
+                    'fill-color': '#FF0000',
+                    'fill-opacity': 0.5
+                    }
             })
         })
-    }, [props.geometries, map])
+    }, [props.geometries, map, mapLoaded])
 
         return (
             <div style={{width: '80%'}}>
