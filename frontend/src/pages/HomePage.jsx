@@ -1,58 +1,85 @@
-// HomePage.js
-import React, { useState } from 'react';
-import './HomePage.css'; // Import the CSS file
-import { BACKEND_URL as BASE_URL } from '../config';
+import React, { useEffect, useState } from 'react';
+import './HomePage.css';
+import Web3, { errors } from 'web3';
+import { TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS } from '../config';
+import jsondata from '../ABI.json';
+
+const ABI = jsondata;
 
 const HomePage = () => {
-  const [numTokens, setnumTokens] = useState(0);
+  const [numTokens, setNumTokens] = useState(0);
+  const [userTokens, setUserTokens] = useState(0);
+  const [userAddress, setUserAddress] = useState('');
+  const [contract, setContractInstance] = useState(null);
 
-  const fetchAllTokens = async () => {
-    return fetch(BASE_URL+'/all')
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error("Oooer am not good with computer plz help");
-      }
-      return res.json();
-    })
-    .then((data) => {
-      return data;
-    })
-    .catch((error) =>  {
-      console.error("bad thing uh oh", error);
-    });
+  useEffect(() => {
+    initializeWeb3();
+  }, [numTokens, userTokens]);
+
+  const initializeWeb3 = async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      const web3 = new Web3(window.ethereum);
+      try {
+        await window.ethereum.enable();
+        const contractInstance = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+  
+        if (accounts.length > 0) {
+          const address = accounts[0];
+          setUserAddress(address);
+        } else {
+          console.error('No accounts found.');
+        }
+
+        setContractInstance(contractInstance);
+        const supply = await fetchTotalSupply(contractInstance);
+        console.log(supply);
+        setNumTokens(supply);
+        const balance = await fetchUserSupply(contractInstance);
+        console.log(balance)
+        setUserTokens(balance);
+      } catch (error) {
+        console.error('Error initializing web3:', error);
+      };
+    } else {
+      console.error('Metamask not installed.');
+    }
   };
 
-  fetchAllTokens().then( async (allTokens) => {
-    const response = await allTokens;
-    setnumTokens(response.tokens.length);
-  });
+  const fetchTotalSupply = async (contractInstance) => {
+    try {
+      const supply = await contractInstance.methods.totalSupply().call();
+      setNumTokens(supply);
+      return supply;
+    } catch (error) {
+      console.error('Error fetching total supply:', error);
+      setNumTokens(0);
+    }
+  };
 
-  const handleMerge = () => {
-    console.log("Merge")
-  }
+  const fetchUserSupply = async (contractInstance) => {
+    try {
+      const balance = await contractInstance.methods.balanceOf(userAddress).call();
+      setUserTokens(balance);
+      return balance;
+    } catch (error) {
+      console.error('Error fetching user balance:', error);
+      setUserTokens(0);
+    }
+    
+  };
 
-  const handleSplit = () => {
-    console.log("Split")
-  }
-
-  const handleMint = () => {
-    console.log("Mint")
-  }
+  const handleUpload = () => {
+    console.log('Mint');
+  };
 
   return (
     <div className="container">
       <h1>Welcome to the 6452 Land Title Management System</h1>
       <h2>There are <b>{numTokens}</b> Land Tokens currently minted</h2>
-      <div className="box" onClick={handleMerge}>
-        <h1>Merge</h1>
-      </div>
-      <div className="box" onClick={handleSplit}>
-        <div className="content">
-          <h1>Split</h1>
-        </div>
-      </div>
-      <div className="box" onClick={handleMint}>
-        <h1>Free tokens</h1>
+      <h2>You own <b>{userTokens}</b> Land Tokens</h2>
+      <div className="box" onClick={handleUpload}>
+        <h1>Upload Documents</h1>
       </div>
     </div>
   );
