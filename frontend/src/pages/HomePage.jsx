@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import './HomePage.css';
-import Web3, { errors } from 'web3';
+import Web3 from 'web3';
 import { TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS } from '../config';
 import jsondata from '../ABI.json';
 
@@ -92,15 +93,15 @@ const HomePage = () => {
       <h1>Welcome to the 6452 Land Title Management System</h1>
       {isLoading ? (
         <p>Loading...</p>
-        ) : (
-          <>
-            <h2>There are <b>{numTokens}</b> Land Tokens currently minted</h2>
-            <h2>You own <b>{userTokens}</b> Land Tokens</h2>
-          </>
-        )}
-      <div className="box" onClick={handleUpload}>
+      ) : (
+        <>
+          <h2>There are <b>{numTokens}</b> Land Tokens currently minted</h2>
+          <h2>You own <b>{userTokens}</b> Land Tokens</h2>
+        </>
+      )}
+      <Link to="/filesupload" className="box">
         <h1>Upload Documents</h1>
-      </div>
+      </Link>
     </div>
   );
 };

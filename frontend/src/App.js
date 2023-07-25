@@ -115,6 +115,7 @@ import LoginPage from './pages/LoginPage';
 import NavigationBar from './components/NavBar';
 import FetchTokensPage from './pages/FetchTokensPage';
 import FetchOwnPage from './pages/FetchOwnPage';
+import FileCollectorPage from './pages/FileCollectorPage';
 
 const App = () => {
   return (
@@ -125,6 +126,7 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/global" element={<FetchTokensPage />} />
         <Route path="/tokens" element={<FetchOwnPage />} />
+        <Route path='/filesupload' element={<FileCollectorPage />} />
       </Routes>
     </Router>
   );
