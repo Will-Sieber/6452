@@ -3,12 +3,24 @@ import Web3 from 'web3';
 import ActionAreaCard from '../components/Card';
 import jsondata from "../ABI.json"
 import './FetchTokensPage.css'; // Import the CSS file
-import {TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS} from '../config'
+import Map from '../components/Map';
+import {TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS, BACKEND_URL} from '../config'
 const ABI = jsondata;
 
 const FetchTokensPage = () => {
   const [contract, setContract] = useState(null);
   const [allJsons, setAllJsons] = useState([]);
+  const [allTokens, setAllTokens] = useState([]);
+
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/all`)
+    .then((response) => {
+      return response.json();
+    }).then((data) => {
+      console.log(data);
+      setAllTokens(data.tokens);
+    })
+  }, [])
 
   useEffect(() => {
     let isMounted = true;
@@ -65,6 +77,7 @@ const FetchTokensPage = () => {
   return (
     <div>
       <h2>Land Tokens: </h2>
+      <Map geometries={allTokens}/>
       <div className='cardcontainer'>
         {allJsons.map((item, index) => (
           <ActionAreaCard
