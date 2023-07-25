@@ -37,8 +37,8 @@ export default function Map(props) {
         if (!map.current) return;
         map.current.on('load', () => {setMapLoaded(true);});
         if (!mapLoaded) return;
-        props.geometries.forEach((geometry) => {
-            map.current.addSource(`${geometry.id}`, {
+        props.geometries.forEach((geometry, index) => {
+            map.current.addSource(`Polygon-${geometry.index}`, {
                 type: 'geojson',
                 data: {
                     type: 'Feature',
@@ -49,7 +49,7 @@ export default function Map(props) {
                 }
             })
         })
-    }, [props.geometries, map])
+    }, [props.geometries, map, mapLoaded])
 
         return (
             <div style={{width: '80%'}}>
