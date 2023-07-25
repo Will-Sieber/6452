@@ -119,7 +119,7 @@ const FetchOwnPage = () => {
     })
 
     // 1.
-    const success = await fetch('http://localhost:5000' + "/check/merge", {
+    const success = await fetch(BACKEND_URL + "/check/merge", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ const FetchOwnPage = () => {
       console.log(mergeResult)
 
       // Step 4:
-      const mergeSuccess = await fetch('http://localhost:5000' + "/merge", {
+      const mergeSuccess = await fetch(BACKEND_URL+ "/merge", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

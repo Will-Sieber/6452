@@ -31,9 +31,7 @@ const FileCollectorPage = () => {
     formData.append('reference_id', existingReference ? Number(referenceId) : null)
     formData.append('submitter_address', accountAddress)
 
-    // TODO: Change to BACKEND_URL
-    // FOR now, just localhost:5000
-    fetch(`http://localhost:5000/files/upload`, {
+    fetch(`${BACKEND_URL}/files/upload`, {
       method: 'POST',
       body: formData,
     })
