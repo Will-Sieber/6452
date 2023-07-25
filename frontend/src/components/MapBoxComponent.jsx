@@ -42,7 +42,7 @@ export default function MapboxComponent({showModal, onCloseModal, boundary, hole
         
          
 
-        map.on('draw.create', (event) => {
+        map.current.on('draw.create', (event) => {
             const newFeatures = event.features;
             console.log('New features:', newFeatures);
         });
