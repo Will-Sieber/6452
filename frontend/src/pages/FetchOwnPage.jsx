@@ -14,7 +14,7 @@ const HelperABI = helperJsonData;
 const FetchOwnPage = () => {
   const [URI, setURI] = useState('')
   const [contract, setContract] = useState(null);
-  const [address, setAddress] = useState(null);
+  const [address, setAddress] = useState(localStorage.getItem("AccountAddress"));
   const [allJsons, setAllJsons] = useState([]);
   const [tokenIds, setTokenIds] = useState([]);
   const [checked, setChecked] = useState([]);
@@ -70,7 +70,7 @@ const FetchOwnPage = () => {
       isMounted = false;
       // Clean up if needed
     };
-  }, [refreshTrigger]);
+  }, [refreshTrigger, address]);
 
   const findTokenRecursive = async (contract) => {
     if (!contract) {
@@ -78,7 +78,7 @@ const FetchOwnPage = () => {
       return [];
     }
     const useThisAddress =  address !== null ? address : localStorage.getItem("AccountAddress");
-    const thing = await contract.methods.tokenOfOwnerByIndex(address, index).call().then(async (result, error) => {
+    const thing = await contract.methods.tokenOfOwnerByIndex(useThisAddress, index).call().then(async (result, error) => {
       if (!error) {
         index++;
         const next_result = await findTokenRecursive(contract);
