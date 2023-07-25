@@ -4,27 +4,46 @@ pragma solidity >=0.7.0 < 0.9.0;
 
 import "./LandToken.sol";
 
-contract LandTokenHelper is LandToken {
+contract LandTokenHelper {
+    LandToken public LandTokenInstance;
 
-    function createLandTokenMetadata(uint256 lat1, uint256 long1, uint256 lat2, uint256 long2, uint256 lat3, uint256 long3) internal pure returns (string memory) {
-        string memory json = string(abi.encodePacked(
-            '{"lat1": ', Strings.toString(lat1),
-            ', "long1": ', Strings.toString(long1),
-            ', "lat2": ', Strings.toString(lat2),
-            ', "long2": ', Strings.toString(long2),
-            ', "lat3": ', Strings.toString(lat3),
-            ', "long3": ', Strings.toString(long3),
-            '}'
-        ));
-        
-        return json;
+    constructor(address landTokenAddress) {
+        LandTokenInstance = LandToken(landTokenAddress);
     }
 
-    function generateURLPath(string memory json) internal pure returns (string memory) {
-        string memory baseURI = "https://example.com/land-tokens/";
-        string memory fileName = string(abi.encodePacked(sha256(bytes(json)), ".json"));
-        string memory path = string(abi.encodePacked(baseURI, fileName));
-        
-        return path;
+    function findSmallest(uint256[] memory numbers) public pure returns (uint256) {
+        require(numbers.length > 0, "Array must not be empty");
+
+        uint256 smallest = numbers[0];
+        for (uint256 i = 1; i < numbers.length; i++) {
+            if (numbers[i] < smallest) {
+                smallest = numbers[i];
+            }
+        }
+
+        return smallest;
     }
+    
+    function mergeTokens(uint256[] calldata tokenIds) public returns (bool) {
+        // Get the ERC721 contract instance using the IERC721 interface
+
+        // Check we have permission to modify all of the tokens we've been given
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            if (LandTokenInstance.getApproved(tokenIds[i]) != address(this)) {
+                return false;
+            }
+        }
+        // We have permission to modify all these tokens.
+        // Let's get the one with the lowest token ID and then we can burn the others
+        uint256 smallestTokenId = findSmallest(tokenIds);
+        for (uint256 i=0; i < tokenIds.length; i++) {
+            if (tokenIds[i] != smallestTokenId) {
+                // Burn the token
+                LandTokenInstance.burn(tokenIds[i]);
+            }
+        }
+
+        return true;
+    }
+
 }
