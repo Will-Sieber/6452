@@ -89,13 +89,15 @@ const FetchOwnPage = () => {
         return userAddress;
       }
   }
-  
+
   return (
     <div>
       <div className='cardcontainer'>
         {allJsons.map((item, index) => (
           <MyCard
           key={item.data?.name}
+          boundary = {item.data?.boundary}
+          holes = {item.data?.holes}
           animationurl = {URI.replace(/\.[^/.]+$/, ".html")}
           name = {item.data?.name}
           description = {item.data?.description}
