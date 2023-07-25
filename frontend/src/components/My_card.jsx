@@ -10,7 +10,7 @@ import Modal from '@mui/material/Modal';
 import Checkbox from '@mui/material/Checkbox';
 import MapboxComponent from './MapBoxComponent';
 
-export default function MyCard({ animationurl, boundary, holes, name, description}) {
+export default function MyCard({ animationurl, boundary, holes, name, description, isCheckedCallback}) {
 
     const [isChecked, setIsChecked] = React.useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -31,6 +31,7 @@ export default function MyCard({ animationurl, boundary, holes, name, descriptio
             console.log("checking")
         }
         setIsChecked(e.target.checked);
+        isCheckedCallback(e.target.checked);
     }
 
       return (

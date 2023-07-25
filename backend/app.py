@@ -7,8 +7,9 @@ from shapely.geometry.polygon import Polygon
 from shapely.validation import explain_validity
 import os
 import json
-
+from dotenv import load_dotenv
 from flask_migrate import Migrate
+from web3 import Web3
 
 
 UPLOAD_FOLDER = 'hosted-files/'
@@ -22,6 +23,39 @@ app.config['SQLALCHEMY_DATABASE_URI'] =\
 app.config['UPLOAD_FOLDER'] = os.path.join(basedir, UPLOAD_FOLDER)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+load_dotenv()
+
+web3 = Web3(Web3.HTTPProvider(os.getenv('WEB3_PROVIDER_URI')))
+# Verify if the connection is successful
+if web3.is_connected():
+    print("-" * 50)
+    print("Connection Successful")
+    print("-" * 50)
+else:
+    print("Connection Failed")
+
+caller = os.getenv('WALLET_ADDRESS')
+private_key = os.getenv('WALLET_PRIVATE_KEY')
+
+with open('../frontend/src/ABI.json') as f:
+    abi = json.load(f)
+
+contract_address = os.getenv('CONTRACT_ADDRESS')
+
+nonce = web3.eth.get_transaction_count(caller)
+
+contract = web3.eth.contract(address=contract_address, abi=abi)
+
+def mintToken(address, URI):
+    Chain_id = web3.eth.chain_id
+    call_function = contract.functions.mintLandToken(Web3.to_checksum_address(address.strip('\"')), URI).build_transaction({"chainId": Chain_id, "from": caller, "nonce": nonce})
+    signed_tx = web3.eth.account.sign_transaction(call_function, private_key=private_key)
+    send_tx = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    tx_receipt = web3.eth.wait_for_transaction_receipt(send_tx)
+    print(tx_receipt)
+    return tx_receipt
+
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.mkdir(app.config['UPLOAD_FOLDER'])
@@ -67,11 +101,11 @@ class Token(db.Model):
     
     @property
     def Polygon(self):
-        return Polygon([(p.lat, p.lon) for p in self.boundary.points], holes=[[(p.lat, p.lon) for p in hole.points] for hole in self.holes])
+        return Polygon([(p.lat, p.lon) for p in self.boundary.points], holes=[[(p.lon, p.lat) for p in hole.points] for hole in self.holes])
     
     @property
     def LinearRing(self):
-        return LinearRing([(p.lat, p.lon) for p in self.boundary.points])
+        return LinearRing([(p.lon, p.lat) for p in self.boundary.points])
     
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -203,6 +237,44 @@ def check_merge():
         "not_touching": list(not_touching)
     }
 
+@app.route('/merge', methods=['POST'])
+def merge():
+    data = request.get_json()
+    # NOTE: These need to be backend 'reference ids', not the actual token ids
+    token_ids = data['reference_ids']
+    keep_token_ref_id = min(token_ids)
+    other_ids = [id for id in token_ids if id != keep_token_ref_id]
+    keep_token = Token.query.filter_by(id=keep_token_ref_id).first()
+    other_tokens = Token.query.filter(Token.id.in_(other_ids)).all()
+    resultant_polygon = keep_token.Polygon
+    for token in other_tokens:
+        resultant_polygon = resultant_polygon.union(token.Polygon)
+    if not resultant_polygon.is_valid:
+        return {
+            "success": False,
+            "valid": False,
+            "message": explain_validity(resultant_polygon)
+        }, 422
+    keep_token.holes = []
+    new_boundary = Area()
+    for point in resultant_polygon.exterior.coords:
+        new_point = Point(area=new_boundary, lat=point[1], lon=point[0])
+        db.session.add(new_point)
+    keep_token.boundary = new_boundary
+    for hole in resultant_polygon.interiors:
+        new_hole = Area()
+        for point in hole.coords:
+            new_point = Point(area=new_hole, lat=point[1], lon=point[0])
+            db.session.add(new_point)
+        keep_token.holes.append(new_hole)
+    for token in other_tokens:
+        db.session.delete(token)
+    db.session.commit()
+    return {
+        "success": True,
+        "reference_id": keep_token.id,
+    }
+
 # File upload/download
 
 def allowed_file(filename):
@@ -279,9 +351,12 @@ def approve():
         return "Token not found", 404
     if token.boundary is None:
         return "Token has no boundary", 422
+    if not token.pending:
+        return "Token is not pending", 400
     token.pending = False
     db.session.commit()
     # TODO: NOW, GO MINT THE TOKEN
+    mintToken(token.initial_owner, f"{request.host_url}uri/token-{token.id}.json")
     return {
         "success": True
     }
@@ -368,7 +443,7 @@ def get_item(token_id: int):
     return Response(json.dumps(content),
                     mimetype='application/json',
                     headers={'Content-Disposition':f'attachment;filename=token-{token.id}.json'}
-                    )
+                )
     
 @app.route("/uri/token-<token_id>.html")
 def get_token_map(token_id: int):
