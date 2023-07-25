@@ -10,11 +10,20 @@ const HomePage = () => {
   const [numTokens, setNumTokens] = useState(0);
   const [userTokens, setUserTokens] = useState(0);
   const [userAddress, setUserAddress] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [contract, setContractInstance] = useState(null);
 
   useEffect(() => {
     initializeWeb3();
-  }, [numTokens, userTokens]);
+  }, []);
+
+  useEffect(() => {
+    if (contract) {
+      Promise.all([fetchTotalSupply(contract), fetchUserSupply(contract)])
+        .then(() => setIsLoading(false))
+        .catch((error) => console.error('Error fetching data:', error));
+    }
+  }, [contract]);
 
   const initializeWeb3 = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -33,11 +42,11 @@ const HomePage = () => {
 
         setContractInstance(contractInstance);
         const supply = await fetchTotalSupply(contractInstance);
-        console.log(supply);
         setNumTokens(supply);
+        console.log(supply);
         const balance = await fetchUserSupply(contractInstance);
-        console.log(balance)
         setUserTokens(balance);
+        console.log(balance)
       } catch (error) {
         console.error('Error initializing web3:', error);
       };
@@ -76,8 +85,14 @@ const HomePage = () => {
   return (
     <div className="container">
       <h1>Welcome to the 6452 Land Title Management System</h1>
-      <h2>There are <b>{numTokens}</b> Land Tokens currently minted</h2>
-      <h2>You own <b>{userTokens}</b> Land Tokens</h2>
+      {isLoading ? (
+        <p>Loading...</p>
+        ) : (
+          <>
+            <h2>There are <b>{numTokens}</b> Land Tokens currently minted</h2>
+            <h2>You own <b>{userTokens}</b> Land Tokens</h2>
+          </>
+        )}
       <div className="box" onClick={handleUpload}>
         <h1>Upload Documents</h1>
       </div>
