@@ -1,10 +1,19 @@
 // NavigationBar.js
-import React from 'react';
+import { React, useEffect, useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './NavBar.css'; // Import the CSS file
 
 const NavigationBar = () => {
   const navigate = useNavigate();
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window.ethereum !== 'undefined') {
+      setLoggedIn(true)
+    } else {
+      setLoggedIn(false)
+    }
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -41,16 +50,6 @@ const NavigationBar = () => {
           </Link>
         </li>
         <li>
-          <Link to="/login" className="nav-link">
-            Log In
-          </Link>
-        </li>
-        <li>
-          <button onClick={handleLogout} className="logout-button">
-            Log Out
-          </button>
-        </li>
-        <li>
           <Link to="/global" className="nav-link"> {/* Add the new link */}
             All Tokens
           </Link>
@@ -60,6 +59,11 @@ const NavigationBar = () => {
             My Tokens
           </Link>
         </li>
+        {!loggedIn && <li>
+          <Link to="/login" className="nav-link">
+            Log In
+          </Link>
+        </li>}
       </ul>
     </nav>
   );
