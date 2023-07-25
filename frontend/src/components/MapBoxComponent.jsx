@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 import { MAPBOX_KEY } from '../config'; 
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import TextField from '@mui/material/TextField';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 
 mapboxgl.accessToken = MAPBOX_KEY;
 
@@ -12,6 +15,12 @@ export default function MapboxComponent({showModal, onCloseModal, boundary, hole
     const map = useRef(null);
     const [zoom, setZoom] = useState(9);
     const [mapLoaded, setMapLoaded] = useState(false);
+    
+    const [input1, setInput1] = useState("");
+    const [input2, setInput2] = useState("");
+    const [input3, setInput3] = useState("");
+    const [input4, setInput4] = useState("");
+
 
     useEffect(() => {
         let updatedBoundary = formatCoords(boundary);
@@ -59,6 +68,10 @@ export default function MapboxComponent({showModal, onCloseModal, boundary, hole
         return result;
     }
 
+    const handleInputChange = (e, setInput) => {
+        setInput(e.target.value);
+      };
+
     useEffect(() => {
         if (!map.current) return;
         map.current.on('load', () => {setMapLoaded(true);});
@@ -87,12 +100,44 @@ export default function MapboxComponent({showModal, onCloseModal, boundary, hole
         }
     }, [boundary, map, mapLoaded])
 
-  return (
-    <>
-        {showModal && <div style={{width: '80%'}}>
-            <div ref={mapContainer} className="map-container" style={{'height': '400px'}}/>
-        </div>
-        }
-    </>
-  );
-};
+    return (
+        <>
+            {showModal && <div style={{width: '80%'}}>
+                <div ref={mapContainer} className="map-container" style={{'height': '400px'}}/>
+                <br></br><br></br><br></br>
+                <Stack spacing={2} p={2}>
+                  <TextField 
+                    variant="outlined" 
+                    placeholder="New coords 1" 
+                    value={input1} 
+                    onChange={(e) => handleInputChange(e, setInput1)}
+                    multiline
+                  />
+                  <TextField 
+                    variant="outlined" 
+                    placeholder="New coords 2" 
+                    value={input2} 
+                    onChange={(e) => handleInputChange(e, setInput2)}
+                    multiline
+                  />
+                  <TextField 
+                    variant="outlined" 
+                    placeholder="New coords 3" 
+                    value={input3} 
+                    onChange={(e) => handleInputChange(e, setInput3)}
+                    multiline
+                  />
+                  <TextField 
+                    variant="outlined" 
+                    placeholder="New coords 4" 
+                    value={input4} 
+                    onChange={(e) => handleInputChange(e, setInput4)}
+                    multiline
+                  />
+                  <Button variant="contained" color="primary">Submit</Button>
+                </Stack>
+            </div>
+            }
+        </>
+      );
+    };
