@@ -19,8 +19,9 @@ const HomePage = () => {
 
   useEffect(() => {
     if (contract) {
+      console.log("Going to resolve all promises")
       Promise.all([fetchTotalSupply(contract), fetchUserSupply(contract)])
-        .then(() => setIsLoading(false))
+        .then(() => {setIsLoading(false)})
         .catch((error) => console.error('Error fetching data:', error));
     }
   }, [contract]);
@@ -56,9 +57,12 @@ const HomePage = () => {
   };
 
   const fetchTotalSupply = async (contractInstance) => {
+    if (!contractInstance) return;
+    console.log("Fetching total supply...")
     try {
       const supply = await contractInstance.methods.totalSupply().call();
-      setNumTokens(supply);
+      console.log(`Supply is ${supply}`)
+      setNumTokens(Number(supply));
       return supply;
     } catch (error) {
       console.error('Error fetching total supply:', error);
@@ -69,7 +73,8 @@ const HomePage = () => {
   const fetchUserSupply = async (contractInstance) => {
     try {
       const balance = await contractInstance.methods.balanceOf(userAddress).call();
-      setUserTokens(balance);
+      console.log(`Balance is ${balance}`)
+      setUserTokens(Number(balance));
       return balance;
     } catch (error) {
       console.error('Error fetching user balance:', error);
