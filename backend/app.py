@@ -318,7 +318,7 @@ def upload_file():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_obj.usable_filename))
             return {
                     "success": True,
-                    "reference_id": None,
+                    "reference_id": token.id,
                     "filename": file_obj.usable_filename,
                 }, 200
     else:
