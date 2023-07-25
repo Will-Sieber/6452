@@ -79,7 +79,7 @@ const FetchTokensPage = () => {
       <div className='cardcontainer'>
         {allJsons.map((item, index) => (
           <ActionAreaCard
-            key={index}
+            key={item.data?.name}
             animationurl = {item.URI ? item.URI.replace(/\.[^/.]+$/, ".html") : ""}
             name = {item.data?.name}
             description = {item.data?.description}

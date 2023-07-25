@@ -58,12 +58,8 @@
                 default: return 9.6
             }
         }
-        console.log({lat_min, lat_max, lng_min, lng_max})
-        
-        console.log(...holeCoordinates)
 
         const zoomLevel = getZoomLevelForGeojsonArea(lat_min, lat_max, lng_min, lng_max);
-        console.log(zoomLevel);
     
         const map = new mapboxgl.Map({
         container: 'map',

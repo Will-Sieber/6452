@@ -51,13 +51,13 @@ const NavigationBar = () => {
           </button>
         </li>
         <li>
-          <Link to="/tokens" className="nav-link"> {/* Add the new link */}
-            Fetch Tokens
+          <Link to="/global" className="nav-link"> {/* Add the new link */}
+            All Tokens
           </Link>
         </li>
         <li>
-          <Link to="/test" className="nav-link">
-            Will test page
+          <Link to="/tokens" className="nav-link">
+            My Tokens
           </Link>
         </li>
       </ul>

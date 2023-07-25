@@ -8,12 +8,10 @@ import {TOKEN_CONTRACT_ADDRESS as CONTRACT_ADDRESS} from '../config';
 const ABI = jsondata;
 //const CONTRACT_ADDRESS = localStorage.getItem("contractAddress")
 
-const FetchOwnerPage = () => {
-  const [contract, setContract] = useState(null);
-  const [ownerAddress, setOwnerAddress] = useState('');
+const FetchOwnPage = () => {
   const [URI, setURI] = useState('')
+  const [allJsons, setAllJsons] = useState([]);
   let index = 0;
-  let user_token_ids = [];
   let account = null;
 
   useEffect(() => {
@@ -26,16 +24,23 @@ const FetchOwnerPage = () => {
         fetchAccount(web3).then((address) => {
           account = address;
         })
-
+        const tokenData = [];
         try {
           await window.ethereum.enable();
           const contractInstance = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-          setContract(contractInstance);
           
-          console.log("bruh")
-          findTokenRecursive(contractInstance);
-  
-
+          const tryThisResult = await findTokenRecursive(contractInstance);
+          tryThisResult.forEach(async token => {
+            const URI = await contractInstance.methods.tokenURI(token).call();
+            setURI(URI);
+            const response = await fetch(URI);
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            tokenData.push({URI, data});
+            setAllJsons([...tokenData]);
+          });
         } catch (error) {
           console.error('Error initializing web3:', error);
         }
@@ -54,21 +59,25 @@ const FetchOwnerPage = () => {
 
   const findTokenRecursive = async (contract) => {
     if (!contract) {
-      console.log("no contract??");
-      return;
+      console.error("No valid contract")
+      return [];
     }
-
-    contract.methods.tokenOfOwnerByIndex(account, index).call((error, result) => {
+    const thing = await contract.methods.tokenOfOwnerByIndex(account, index).call().then(async (result, error) => {
       if (!error) {
-        console.log(result.toNumber());
-        user_token_ids.push(result.toNumber());
         index++;
-        findTokenRecursive(contract);
+        const next_result = await findTokenRecursive(contract);
+        next_result.push(result);
+        return next_result;
       } else {
-        console.log("oopsie wwoopsie")
-        return;
+        //console.error("oopsie wwoopsie", error)
+        return [];
       }
     })
+    .catch((error) => {
+      //console.error("oh no", error);
+      return [];
+    });
+    return thing;
   };
 
 
@@ -79,24 +88,21 @@ const FetchOwnerPage = () => {
         return userAddress;
       }
   }
-
-  const allJsons = [];
-
+  
   return (
     <div>
-      <h2>Owner Address</h2>
-      {ownerAddress && <p>Owner Address: {ownerAddress}</p>}
       <div className='cardcontainer'>
-        {allJsons.map((item) => (
+        {allJsons.map((item, index) => (
           <ActionAreaCard
-            animationurl = {URI.replace(/\.[^/.]+$/, ".html")}
-            name = {item?.name}
-            description = {item?.description}
-          />
+          key={item.data?.name}
+          animationurl = {URI.replace(/\.[^/.]+$/, ".html")}
+          name = {item.data?.name}
+          description = {item.data?.description}
+        />
         ))}
       </div>
     </div>
   );
 };
 
-export default FetchOwnerPage;
+export default FetchOwnPage;
