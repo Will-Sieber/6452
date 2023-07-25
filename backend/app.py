@@ -212,6 +212,7 @@ def allowed_file(filename):
 @app.route('/files/upload', methods=['POST'])
 def upload_file():
     data = request.form.to_dict()
+    print(data)
     if 'file' in request.files:
         file = request.files['file']
         if 'reference_id' not in data:
@@ -219,9 +220,10 @@ def upload_file():
                 "success": False,
                 "message": "No reference_id provided. Please provide a reference_id for an existing token, or set reference_id to None to create a new token."
             }, 400
-        token = Token.query.filter_by(id=data['reference_id']).first()
-        if token is None:
-            return "Token not found", 404
+        if data['reference_id'] == 'null':
+            data['reference_id'] = None
+        else:
+            data['reference_id'] = int(data['reference_id'])
         if data['reference_id'] is None:
             if 'submitter_address' not in data:
                 return {
@@ -230,6 +232,10 @@ def upload_file():
                 }, 400
             token = Token(pending=True, initial_owner=data['submitter_address'])
             db.session.add(token)
+        else:
+            token = Token.query.filter_by(id=data['reference_id']).first()
+            if token is None:
+                return "Token not found", 404
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
         if file and file.filename != '' and allowed_file(file.filename):
